@@ -1,0 +1,18 @@
+<section class="auth-card auth-card-wide">
+  <% if (firstRun) { %><p class="step">Step 2 of 3</p><% } %>
+  <h1>Save your recovery key</h1>
+  <p class="lede">If the master password is ever forgotten, this key is the <strong>only</strong> way to open POM Keeper. It is shown once. Print it and keep it with your important papers.</p>
+  <div class="recovery-key mono" data-recovery-key><%= recoveryKey %></div>
+  <div class="row">
+    <button type="button" class="btn btn-secondary" data-print="print"><%- include('../partials/icon', { name: 'printer' }) %> Print recovery sheet</button>
+    <button type="button" class="btn btn-ghost" data-print="pdf">Save as PDF</button>
+  </div>
+  <form id="recovery-form" class="stack" novalidate>
+    <label class="check">
+      <input type="checkbox" name="saved" required>
+      <span>I printed or saved my recovery key somewhere safe.</span>
+    </label>
+    <p class="form-error" role="alert" hidden></p>
+    <button type="submit" class="btn btn-primary btn-block">Continue</button>
+  </form>
+</section>

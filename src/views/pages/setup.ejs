@@ -1,0 +1,19 @@
+<section class="auth-card">
+  <h1>Welcome to POM Keeper</h1>
+  <p class="lede">Your Peace Of Mind Keeper holds your accounts, the people to call, and important notes, so your family knows what to do. Start by choosing a master password.</p>
+  <form id="setup-form" class="stack" novalidate>
+    <label class="field">
+      <span class="field-label">Master password</span>
+      <input type="password" name="password" autocomplete="new-password" required minlength="10" autofocus>
+      <span class="meter" aria-hidden="true"><span class="meter-bar" data-meter></span></span>
+      <span class="field-hint" data-meter-label>At least 10 characters. A short sentence works well.</span>
+    </label>
+    <label class="field">
+      <span class="field-label">Type it again</span>
+      <input type="password" name="confirm" autocomplete="new-password" required>
+    </label>
+    <p class="form-error" role="alert" hidden></p>
+    <button type="submit" class="btn btn-primary btn-block">Create my vault</button>
+  </form>
+  <p class="fine">Next you'll get a recovery key. It's the only way back in if this password is ever forgotten.</p>
+</section>

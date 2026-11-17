@@ -1,0 +1,35 @@
+<!doctype html>
+<html lang="en">
+<head>
+<%- include('partials/head', { title, scripts }) %>
+</head>
+<body class="app">
+  <aside class="sidebar">
+    <div class="sidebar-header">
+      <img class="logo" src="pom://app/static/img/logo.svg" alt="POM Keeper">
+      <button type="button" class="btn btn-ghost btn-icon" data-action="lock" title="Lock now">
+        <%- include('partials/icon', { name: 'lock' }) %>
+      </button>
+    </div>
+    <nav class="sidebar-nav" aria-label="Main">
+      <% for (const item of nav) { %>
+        <% if (item.soon) { %>
+          <span class="nav-item is-disabled" title="Coming in a later milestone">
+            <%- include('partials/icon', { name: item.icon }) %><span><%= item.label %></span><span class="soon">Soon</span>
+          </span>
+        <% } else { %>
+          <a class="nav-item<%= active === item.id ? ' is-active' : '' %>" href="pom://app<%= item.href %>">
+            <%- include('partials/icon', { name: item.icon }) %><span><%= item.label %></span>
+          </a>
+        <% } %>
+      <% } %>
+    </nav>
+    <div class="sidebar-footer">
+      <span class="status-dot"></span> Offline · Encrypted
+    </div>
+  </aside>
+  <main class="main">
+    <%- body %>
+  </main>
+</body>
+</html>

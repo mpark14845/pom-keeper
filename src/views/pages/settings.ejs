@@ -1,0 +1,81 @@
+<header class="page-header">
+  <div>
+    <p class="overline">Configuration</p>
+    <h1>Settings</h1>
+  </div>
+</header>
+<div class="page-body narrow">
+  <% if (saved === 'recovery') { %>
+  <div class="banner banner-ok"><%- include('../partials/icon', { name: 'check' }) %><div>Your new recovery key is saved. The old one no longer works.</div></div>
+  <% } else if (saved === 'password') { %>
+  <div class="banner banner-ok"><%- include('../partials/icon', { name: 'check' }) %><div>Your master password was changed.</div></div>
+  <% } %>
+
+  <section class="card">
+    <h2>Security</h2>
+    <form id="lock-form" class="stack" novalidate>
+      <label class="field field-inline">
+        <span class="field-label">Lock after</span>
+        <input type="number" name="lock_minutes" min="5" max="240" step="1" value="<%= settings.lock_minutes %>" class="input-sm">
+        <span>minutes without activity</span>
+      </label>
+      <p class="form-error" role="alert" hidden></p>
+      <p class="form-ok" role="status" hidden>Saved.</p>
+      <div><button type="submit" class="btn btn-secondary">Save</button></div>
+    </form>
+  </section>
+
+  <section class="card">
+    <h2>Backups</h2>
+    <div class="folder-pick">
+      <%- include('../partials/icon', { name: 'folder' }) %>
+      <span data-folder-label><%= settings.backup_folder || 'No folder chosen yet' %></span>
+      <button type="button" class="btn btn-ghost btn-sm" data-choose-folder>Change…</button>
+    </div>
+    <form id="backup-form" class="stack" novalidate>
+      <label class="check">
+        <input type="checkbox" name="auto_backup" <%= settings.auto_backup === '1' ? 'checked' : '' %>>
+        <span>Back up automatically when POM Keeper closes and once a day</span>
+      </label>
+      <label class="field field-inline">
+        <span class="field-label">Keep the last</span>
+        <input type="number" name="backups_keep" min="1" max="100" value="<%= settings.backups_keep %>" class="input-sm">
+        <span>backups</span>
+      </label>
+      <p class="form-error" role="alert" hidden></p>
+      <p class="form-ok" role="status" hidden>Saved.</p>
+      <div><button type="submit" class="btn btn-secondary">Save</button></div>
+      <p class="meta">"Back up now" and "Restore" arrive with milestone 4.</p>
+    </form>
+  </section>
+
+  <section class="card">
+    <h2>Change master password</h2>
+    <form id="password-form" class="stack" novalidate>
+      <label class="field"><span class="field-label">Current password</span><input type="password" name="current" autocomplete="current-password" required></label>
+      <label class="field"><span class="field-label">New password</span><input type="password" name="password" autocomplete="new-password" required minlength="10">
+        <span class="meter" aria-hidden="true"><span class="meter-bar" data-meter></span></span>
+        <span class="field-hint" data-meter-label>At least 10 characters.</span></label>
+      <label class="field"><span class="field-label">Type it again</span><input type="password" name="confirm" autocomplete="new-password" required></label>
+      <p class="form-error" role="alert" hidden></p>
+      <div><button type="submit" class="btn btn-secondary">Change password</button></div>
+    </form>
+  </section>
+
+  <section class="card" id="recovery">
+    <h2>Recovery key</h2>
+    <p class="meta">Make a new recovery key if yours is lost. The old key stops working.</p>
+    <form id="regen-form" class="stack" novalidate>
+      <label class="field"><span class="field-label">Current password</span><input type="password" name="current" autocomplete="current-password" required></label>
+      <p class="form-error" role="alert" hidden></p>
+      <div><button type="submit" class="btn btn-secondary">Make a new recovery key</button></div>
+    </form>
+  </section>
+
+  <section class="card">
+    <h2>Data file</h2>
+    <p class="meta">Your encrypted data lives in:</p>
+    <p class="mono path"><%= dataDir %></p>
+    <div><button type="button" class="btn btn-ghost btn-sm" data-open-data>Open folder</button></div>
+  </section>
+</div>

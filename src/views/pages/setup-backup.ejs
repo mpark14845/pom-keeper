@@ -1,0 +1,15 @@
+<section class="auth-card">
+  <p class="step">Step 3 of 3</p>
+  <h1>Where should backups go?</h1>
+  <p class="lede">POM Keeper can save encrypted backups to a folder you choose, like a USB stick or a folder you already back up. Backups can only be opened with your password or recovery key.</p>
+  <div class="folder-pick">
+    <%- include('../partials/icon', { name: 'folder' }) %>
+    <span data-folder-label><%= settings.backup_folder || 'No folder chosen yet' %></span>
+  </div>
+  <div class="row">
+    <button type="button" class="btn btn-secondary" data-choose-folder>Choose folder…</button>
+  </div>
+  <p class="form-error" role="alert" hidden></p>
+  <button type="button" class="btn btn-primary btn-block" data-finish>Finish</button>
+  <p class="fine">You can change this any time in Settings.</p>
+</section>

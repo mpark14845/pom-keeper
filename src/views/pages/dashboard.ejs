@@ -1,0 +1,34 @@
+<header class="page-header">
+  <div>
+    <p class="overline">Overview</p>
+    <h1>Dashboard</h1>
+  </div>
+</header>
+<div class="page-body">
+  <% if (settings.recovery_confirmed !== '1') { %>
+  <div class="banner banner-warn">
+    <%- include('../partials/icon', { name: 'alert' }) %>
+    <div><strong>You don't have a saved recovery key.</strong> If you forget your password, your data can't be opened. <a href="pom://app/settings#recovery">Create one in Settings</a>.</div>
+  </div>
+  <% } %>
+  <div class="grid-3">
+    <div class="card stat">
+      <p class="overline">Net worth</p>
+      <p class="stat-value">—</p>
+      <p class="meta">Add accounts and month-end values to see this.</p>
+    </div>
+    <div class="card stat">
+      <p class="overline">Assets</p>
+      <p class="stat-value">—</p>
+    </div>
+    <div class="card stat">
+      <p class="overline">Liabilities</p>
+      <p class="stat-value">—</p>
+    </div>
+  </div>
+  <div class="card empty">
+    <%- include('../partials/icon', { name: 'shield' }) %>
+    <h2>Your vault is ready</h2>
+    <p>Accounts, companies, contacts, family, notes and passwords arrive in the next milestone. For now you can set your auto-lock time and backup folder in <a href="pom://app/settings">Settings</a>.</p>
+  </div>
+</div>

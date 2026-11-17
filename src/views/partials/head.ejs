@@ -1,0 +1,9 @@
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title><%= title %> · POM Keeper</title>
+<link rel="stylesheet" href="pom://app/static/css/fonts.css">
+<link rel="stylesheet" href="pom://app/static/css/tokens.css">
+<link rel="stylesheet" href="pom://app/static/css/app.css">
+<script src="pom://app/static/js/common.js" defer></script>
+<% for (const s of scripts) { %><script src="pom://app/static/js/<%= s %>.js" defer></script>
+<% } %>
