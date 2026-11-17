@@ -1,0 +1,42 @@
+<header class="page-header">
+  <div><p class="overline"><%= section.overline %></p><h1>Contacts</h1></div>
+  <% if (hasCompanies) { %><a class="btn btn-primary" href="pom://app/contacts/new"><%- include('../partials/icon', { name: 'plus' }) %> Add contact</a><% } %>
+</header>
+<div class="page-body">
+  <p class="lede">Advisors, agents and service lines. Each contact belongs to one company.</p>
+  <% if (!hasCompanies) { %>
+    <div class="card empty">
+      <%- include('../partials/icon', { name: 'building' }) %>
+      <h2>Add a company first</h2>
+      <p>Every contact works for a company, like your advisor at Fidelity. Add the company, then add its people.</p>
+      <a class="btn btn-primary" href="pom://app/companies/new">Add a company</a>
+    </div>
+  <% } else if (!rows.length) { %>
+    <div class="card empty">
+      <%- include('../partials/icon', { name: 'user' }) %>
+      <h2>No contacts yet</h2>
+      <p>Add the people your family should call: your financial advisor, insurance agent, or the bank's service line.</p>
+      <a class="btn btn-primary" href="pom://app/contacts/new">Add the first one</a>
+    </div>
+  <% } else { %>
+    <%- include('../partials/list-search', { placeholder: 'Search contacts…' }) %>
+    <div class="card card-flush">
+      <table class="table" data-filterable>
+        <thead><tr><th>Name</th><th>Company</th><th>Title</th><th>Phone</th><th>Email</th><th class="num">Accounts</th></tr></thead>
+        <tbody>
+        <% for (const r of rows) { %>
+          <tr data-href="pom://app/contacts/<%= r.id %>">
+            <td><a class="row-link" href="pom://app/contacts/<%= r.id %>"><%= r.name %></a></td>
+            <td><%= r.company_name %></td>
+            <td><%= r.title || '' %></td>
+            <td><%= r.phone || '' %></td>
+            <td class="meta"><%= r.email || '' %></td>
+            <td class="num"><%= r.account_count || '' %></td>
+          </tr>
+        <% } %>
+        </tbody>
+      </table>
+      <p class="no-match" hidden>No matches.</p>
+    </div>
+  <% } %>
+</div>

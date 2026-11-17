@@ -133,6 +133,12 @@ class Session extends EventEmitter {
     this.emit('locked');
   }
 
+  /** The open database, or a LOCKED error. */
+  get openDb() {
+    this.#requireUnlocked();
+    return this.db;
+  }
+
   settings() {
     this.#requireUnlocked();
     return getSettings(this.db);

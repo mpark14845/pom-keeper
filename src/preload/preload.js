@@ -18,4 +18,7 @@ contextBridge.exposeInMainWorld('pom', {
   regenerateRecoveryKey: call('regenerateRecoveryKey'),
   printRecoveryKey: call('printRecoveryKey'),
   openDataFolder: call('openDataFolder'),
+  save: call('save'),
+  deleteImpact: call('deleteImpact'),
+  remove: call('remove'),
 });
