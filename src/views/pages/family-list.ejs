@@ -1,0 +1,35 @@
+<header class="page-header">
+  <div><p class="overline"><%= section.overline %></p><h1>Family</h1></div>
+  <a class="btn btn-primary" href="pom://app/family/new"><%- include('../partials/icon', { name: 'plus' }) %> Add family member</a>
+</header>
+<div class="page-body">
+  <p class="lede">Everyone who owns an account or is named as a beneficiary, including trusts. Accounts will link to these people in the next update.</p>
+  <% if (!rows.length) { %>
+    <div class="card empty">
+      <%- include('../partials/icon', { name: 'users' }) %>
+      <h2>No family members yet</h2>
+      <p>Add yourself, your spouse, your children, and any trusts that hold property.</p>
+      <a class="btn btn-primary" href="pom://app/family/new">Add the first one</a>
+    </div>
+  <% } else { %>
+    <%- include('../partials/list-search', { placeholder: 'Search family…' }) %>
+    <div class="card card-flush">
+      <table class="table" data-filterable>
+        <thead><tr><th>Name</th><th>Type</th><th>Relationship</th><th>Contact</th><th class="num">Owns</th><th class="num">Beneficiary of</th></tr></thead>
+        <tbody>
+        <% for (const r of rows) { %>
+          <tr data-href="pom://app/family/<%= r.id %>">
+            <td><a class="row-link" href="pom://app/family/<%= r.id %>"><%= r.name %></a></td>
+            <td><span class="badge badge-<%= r.kind %>"><%= kinds.family[r.kind] %></span></td>
+            <td><%= r.relationship || '' %></td>
+            <td class="meta"><%= [r.phone, r.email].filter(Boolean).join(' · ') %></td>
+            <td class="num"><%= r.owns || '' %></td>
+            <td class="num"><%= r.beneficiary_of || '' %></td>
+          </tr>
+        <% } %>
+        </tbody>
+      </table>
+      <p class="no-match" hidden>No matches.</p>
+    </div>
+  <% } %>
+</div>

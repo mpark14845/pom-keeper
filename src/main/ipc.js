@@ -9,6 +9,9 @@
 const { ipcMain, dialog, shell, BrowserWindow } = require('electron');
 const { isAppUrl } = require('./security');
 const { printRoute } = require('./print');
+const repo = require('./repos/entities');
+const acc = require('./repos/accounts');
+const nw = require('./repos/networth');
 
 function handle(channel, fn) {
   ipcMain.handle(`pom:${channel}`, async (event, ...args) => {
@@ -17,7 +20,7 @@ function handle(channel, fn) {
       return { ok: true, ...((await fn(event, ...args)) || {}) };
     } catch (err) {
       if (!err.code) console.error(err);
-      return { ok: false, code: err.code || 'ERROR', message: err.code ? err.message : 'Something went wrong.' };
+      return { ok: false, code: err.code || 'ERROR', message: err.code ? err.message : 'Something went wrong.', field: err.field };
     }
   });
 }
@@ -72,6 +75,26 @@ function registerIpc({ session, dataDir }) {
       mode: mode === 'pdf' ? 'pdf' : 'print',
       defaultName: 'POM Keeper Recovery Key.pdf',
     });
+  });
+  handle('save', async (_e, entity, data) => {
+    session.touch();
+    return { id: repo.save(session.openDb, entity, data) };
+  });
+  handle('deleteImpact', async (_e, entity, id) => repo.deleteImpact(session.openDb, entity, id));
+  handle('remove', async (_e, entity, id) => {
+    repo.remove(session.openDb, entity, id);
+  });
+  handle('saveAccount', async (_e, data) => {
+    session.touch();
+    return { id: acc.saveAccount(session.openDb, data) };
+  });
+  handle('accountImpact', async (_e, id) => acc.accountImpact(session.openDb, id));
+  handle('removeAccount', async (_e, id) => {
+    acc.removeAccount(session.openDb, id);
+  });
+  handle('saveMonth', async (_e, month, items) => {
+    session.touch();
+    return { saved: nw.saveMonth(session.openDb, month, items) };
   });
   handle('openDataFolder', async () => {
     await shell.openPath(dataDir);

@@ -1,8 +1,12 @@
+<%
+  const change = cur.net - prev.net;
+%>
 <header class="page-header">
   <div>
     <p class="overline">Overview</p>
     <h1>Dashboard</h1>
   </div>
+  <% if (hasAccounts) { %><a class="btn btn-primary" href="pom://app/month-end"><%- include('../partials/icon', { name: 'calendar' }) %> Month-end update</a><% } %>
 </header>
 <div class="page-body">
   <% if (settings.recovery_confirmed !== '1') { %>
@@ -13,22 +17,39 @@
   <% } %>
   <div class="grid-3">
     <div class="card stat">
-      <p class="overline">Net worth</p>
-      <p class="stat-value">—</p>
-      <p class="meta">Add accounts and month-end values to see this.</p>
+      <p class="overline">Net worth · <%= fmt.month(month) %></p>
+      <p class="stat-value"><%= hasValues ? fmt.money(cur.net) : '—' %></p>
+      <% if (hasValues) { %>
+        <p class="meta"><span class="<%= change < 0 ? 'neg' : 'pos' %>"><%= change >= 0 ? '+' : '' %><%= fmt.money(change) %></span> vs <%= fmt.month(prev.month) %></p>
+      <% } else { %>
+        <p class="meta">Add accounts and month-end values to see this.</p>
+      <% } %>
     </div>
     <div class="card stat">
       <p class="overline">Assets</p>
-      <p class="stat-value">—</p>
+      <p class="stat-value"><%= hasValues ? fmt.money(cur.assets) : '—' %></p>
     </div>
     <div class="card stat">
       <p class="overline">Liabilities</p>
-      <p class="stat-value">—</p>
+      <p class="stat-value<%= cur.liabilities ? ' neg' : '' %>"><%= hasValues ? fmt.money(-cur.liabilities) : '—' %></p>
     </div>
   </div>
+
+  <% if (missing.length) { %>
+    <section class="card">
+      <div class="links-head">
+        <h2><%= missing.length %> account<%= missing.length === 1 ? ' is' : 's are' %> missing <%= fmt.month(month) %> values</h2>
+        <a class="btn btn-secondary btn-sm" href="pom://app/month-end?month=<%= month %>">Enter values</a>
+      </div>
+      <p class="meta">Until you enter them, the last value is carried forward: <%= missing.slice(0, 6).map((a) => a.nickname).join(', ') %><%= missing.length > 6 ? ', and ' + (missing.length - 6) + ' more' : '' %>.</p>
+    </section>
+  <% } %>
+
+  <% if (!hasAccounts) { %>
   <div class="card empty">
     <%- include('../partials/icon', { name: 'shield' }) %>
     <h2>Your vault is ready</h2>
-    <p>Accounts, companies, contacts, family, notes and passwords arrive in the next milestone. For now you can set your auto-lock time and backup folder in <a href="pom://app/settings">Settings</a>.</p>
+    <p>Start by adding your <a href="pom://app/family">family</a>, the <a href="pom://app/companies">companies</a> that hold your money, the <a href="pom://app/contacts">people to call</a> there, and then your <a href="pom://app/accounts">accounts</a>. Notes, passwords and trend charts come next.</p>
   </div>
+  <% } %>
 </div>

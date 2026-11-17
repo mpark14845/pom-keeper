@@ -1,0 +1,98 @@
+<%
+  const v = (name) => (record && record[name] != null ? record[name] : '');
+  const kindOptions = kinds[entity] || null;
+  const wide = ['notes', 'address'];
+%>
+<header class="page-header">
+  <div>
+    <a class="back" href="pom://app<%= returnTo %>"><%- include('../partials/icon', { name: 'back' }) %> <%= section.title %></a>
+    <h1><%= isNew ? 'New ' + section.singular : record.name %></h1>
+  </div>
+</header>
+<div class="page-body narrow">
+  <form id="record-form" class="card stack" data-entity="<%= entity %>" data-id="<%= isNew ? '' : record.id %>" data-return="<%= returnTo %>" novalidate>
+    <div class="form-grid">
+      <% for (const [name, f] of Object.entries(def.fields)) { %>
+        <label class="field<%= wide.includes(name) ? ' span-2' : '' %>">
+          <span class="field-label"><%= f.label %><% if (f.required) { %> <span class="req">*</span><% } %></span>
+          <% if (f.type === 'enum') { %>
+            <select name="<%= name %>">
+              <% for (const opt of f.values) { %>
+                <option value="<%= opt %>" <%= (v(name) || f.default) === opt ? 'selected' : '' %>><%= kindOptions ? kindOptions[opt] : opt %></option>
+              <% } %>
+            </select>
+          <% } else if (f.type === 'ref') { %>
+            <select name="<%= name %>">
+              <option value="">Choose a company…</option>
+              <% for (const c of companies) { %>
+                <option value="<%= c.id %>" <%= Number(v(name)) === c.id ? 'selected' : '' %>><%= c.name %></option>
+              <% } %>
+            </select>
+          <% } else if (name === 'notes' || name === 'address') { %>
+            <textarea name="<%= name %>" rows="<%= name === 'notes' ? 4 : 2 %>"><%= v(name) %></textarea>
+          <% } else { %>
+            <input type="<%= f.type === 'date' ? 'date' : f.type === 'email' ? 'email' : 'text' %>" name="<%= name %>" value="<%= v(name) %>"
+              <%= name === 'name' && isNew ? 'autofocus' : '' %> <%= f.max ? 'maxlength=' + f.max : '' %> autocomplete="off" spellcheck="false">
+          <% } %>
+          <span class="field-error" data-error-for="<%= name %>" hidden></span>
+        </label>
+      <% } %>
+    </div>
+    <p class="form-error" role="alert" hidden></p>
+    <div class="form-actions">
+      <% if (!isNew) { %>
+        <button type="button" class="btn btn-ghost btn-danger" data-delete><%- include('../partials/icon', { name: 'trash' }) %> Delete</button>
+      <% } %>
+      <span class="spacer"></span>
+      <a class="btn btn-ghost" href="pom://app<%= returnTo %>">Cancel</a>
+      <button type="submit" class="btn btn-primary"><%= isNew ? 'Add ' + section.singular : 'Save changes' %></button>
+    </div>
+    <div class="confirm" data-confirm hidden>
+      <p data-confirm-text></p>
+      <div class="row">
+        <button type="button" class="btn btn-danger-solid" data-confirm-yes>Yes, delete</button>
+        <button type="button" class="btn btn-ghost" data-confirm-no>Keep it</button>
+      </div>
+    </div>
+  </form>
+
+  <% if (entity === 'companies' && !isNew) { %>
+    <section class="card card-flush">
+      <div class="card-head">
+        <h2>Contacts at <%= record.name %></h2>
+        <a class="btn btn-secondary btn-sm" href="pom://app/contacts/new?company=<%= record.id %>&back=/companies/<%= record.id %>"><%- include('../partials/icon', { name: 'plus' }) %> Add contact</a>
+      </div>
+      <% if (!contacts.length) { %>
+        <p class="meta card-pad">No contacts yet. Add the advisor, agent or service line your family should call.</p>
+      <% } else { %>
+        <table class="table">
+          <thead><tr><th>Name</th><th>Title</th><th>Phone</th><th>Email</th></tr></thead>
+          <tbody>
+          <% for (const c of contacts) { %>
+            <tr data-href="pom://app/contacts/<%= c.id %>?back=/companies/<%= record.id %>">
+              <td><a class="row-link" href="pom://app/contacts/<%= c.id %>?back=/companies/<%= record.id %>"><%= c.name %></a></td>
+              <td><%= c.title || '' %></td>
+              <td><%= c.phone || '' %></td>
+              <td class="meta"><%= c.email || '' %></td>
+            </tr>
+          <% } %>
+          </tbody>
+        </table>
+      <% } %>
+    </section>
+  <% } %>
+
+  <% if (linked) { for (const l of linked) { %>
+    <section class="card card-flush">
+      <div class="card-head">
+        <h2><%= l.title %></h2>
+        <% if (l.addHref) { %><a class="btn btn-secondary btn-sm" href="pom://app<%= l.addHref %>&back=/<%= entity %>/<%= record.id %>"><%- include('../partials/icon', { name: 'plus' }) %> Add account</a><% } %>
+      </div>
+      <% if (!l.rows.length) { %>
+        <p class="meta card-pad">None yet.</p>
+      <% } else { %>
+        <%- include('../partials/account-table', { rows: l.rows, fmt, mask: (n) => (n ? '••••' + String(n).slice(-4) : ''), hideCompany: entity === 'companies', back: '/' + entity + '/' + record.id }) %>
+      <% } %>
+    </section>
+  <% } } %>
+</div>

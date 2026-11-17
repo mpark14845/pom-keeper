@@ -1,0 +1,51 @@
+<header class="page-header">
+  <div><p class="overline">What you own and owe</p><h1>Accounts</h1></div>
+  <a class="btn btn-primary" href="pom://app/accounts/new"><%- include('../partials/icon', { name: 'plus' }) %> Add account</a>
+</header>
+<div class="page-body">
+  <div class="grid-3">
+    <div class="card stat"><p class="overline">Assets</p><p class="stat-value"><%= totals.hasValues ? fmt.money(totals.assets) : '—' %></p></div>
+    <div class="card stat"><p class="overline">Liabilities</p><p class="stat-value<%= totals.liabilities ? ' neg' : '' %>"><%= totals.hasValues ? fmt.money(-totals.liabilities) : '—' %></p></div>
+    <div class="card stat"><p class="overline">Net worth</p><p class="stat-value"><%= totals.hasValues ? fmt.money(totals.net) : '—' %></p><p class="meta"><%= totals.hasValues ? "From each open account's latest value." : 'Enter balances on the Month-End page.' %></p></div>
+  </div>
+
+  <div class="toolbar">
+    <div class="segmented" role="tablist" aria-label="View by">
+      <span class="segmented-label">View by</span>
+      <% for (const v of views) { %>
+        <a role="tab" class="seg<%= v.id === view ? ' is-active' : '' %>" aria-selected="<%= v.id === view %>"
+           href="pom://app/accounts?view=<%= v.id %><%= includeClosed ? '&closed=1' : '' %>"><%= v.label %></a>
+      <% } %>
+    </div>
+    <a class="toggle" href="pom://app/accounts?view=<%= view %><%= includeClosed ? '' : '&closed=1' %>">
+      <span class="toggle-box<%= includeClosed ? ' is-on' : '' %>"></span> Show closed accounts
+    </a>
+    <%- include('../partials/list-search', { placeholder: 'Search accounts…' }) %>
+  </div>
+
+  <% if (!count) { %>
+    <div class="card empty">
+      <%- include('../partials/icon', { name: 'layers' }) %>
+      <h2><%= includeClosed ? 'No accounts yet' : 'No open accounts yet' %></h2>
+      <p>Add checking and savings, retirement accounts, your home and car, and every debt: mortgage, loans and credit cards.</p>
+      <a class="btn btn-primary" href="pom://app/accounts/new">Add the first one</a>
+    </div>
+  <% } %>
+
+  <% for (const g of groups) { %>
+    <section class="card card-flush group" data-group>
+      <div class="card-head">
+        <div>
+          <h2><%= g.title %></h2>
+          <% if (g.subtitle) { %><p class="meta"><%= g.subtitle %></p><% } %>
+        </div>
+        <div class="group-total">
+          <span class="meta"><%= g.rows.length %> account<%= g.rows.length === 1 ? '' : 's' %></span>
+          <% if (g.grp !== 'info' && g.hasValues) { %><strong class="<%= g.total < 0 ? 'neg' : '' %>"><%= fmt.money(g.total) %></strong><% } %>
+        </div>
+      </div>
+      <%- include('../partials/account-table', { rows: g.rows, fmt, mask, hideCompany: view === 'company' }) %>
+    </section>
+  <% } %>
+  <p class="no-match card" hidden>No accounts match your search.</p>
+</div>

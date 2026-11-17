@@ -1,0 +1,84 @@
+<header class="page-header">
+  <div><p class="overline">End-of-month balances</p><h1>Month-End Update</h1></div>
+  <div class="month-nav">
+    <a class="btn btn-ghost btn-icon" href="pom://app/month-end?month=<%= prevMonth %>" title="Previous month"><%- include('../partials/icon', { name: 'back' }) %></a>
+    <select data-month-select aria-label="Month">
+      <% for (const m of choices) { %><option value="<%= m %>" <%= m === month ? 'selected' : '' %>><%= fmt.month(m) %></option><% } %>
+    </select>
+    <% if (canNext) { %>
+      <a class="btn btn-ghost btn-icon flip" href="pom://app/month-end?month=<%= next %>" title="Next month"><%- include('../partials/icon', { name: 'back' }) %></a>
+    <% } else { %>
+      <span class="btn btn-ghost btn-icon flip is-disabled" aria-hidden="true"><%- include('../partials/icon', { name: 'back' }) %></span>
+    <% } %>
+  </div>
+</header>
+<div class="page-body">
+  <% if (saved) { %>
+    <div class="banner banner-ok"><%- include('../partials/icon', { name: 'check' }) %><div>Saved <%= fmt.month(month) %>.</div></div>
+  <% } %>
+
+  <div class="grid-3">
+    <div class="card stat"><p class="overline">Net worth, <%= fmt.month(month) %></p><p class="stat-value" data-total="net"><%= fmt.money(grid.totals.net) %></p><p class="meta">Includes carried-forward values.</p></div>
+    <div class="card stat"><p class="overline">Assets</p><p class="stat-value" data-total="assets"><%= fmt.money(grid.totals.assets) %></p></div>
+    <div class="card stat"><p class="overline">Liabilities</p><p class="stat-value<%= grid.totals.liabilities ? ' neg' : '' %>" data-total="liabilities"><%= fmt.money(-grid.totals.liabilities) %></p></div>
+  </div>
+
+  <% if (!grid.count) { %>
+    <div class="card empty">
+      <%- include('../partials/icon', { name: 'calendar' }) %>
+      <h2>No accounts were open in <%= fmt.month(month) %></h2>
+      <p>Add your <a href="pom://app/accounts">accounts</a> first, then come back at the end of each month to record their balances.</p>
+    </div>
+  <% } else { %>
+    <p class="lede">Enter each account's balance at the end of <strong><%= fmt.month(month) %></strong>. For debts, enter the amount you owe. Leave a box empty to carry last month's value forward. <span class="meta"><%= grid.entered %> of <%= grid.count %> entered.</span></p>
+
+    <form id="month-form" class="stack" data-month="<%= month %>" novalidate>
+      <% for (const g of grid.groups) { %>
+        <section class="card card-flush">
+          <div class="card-head"><h2><%= g.grp === 'liability' ? 'Liabilities' : g.grp === 'info' ? 'Info only' : 'Assets' %> / <%= g.title %></h2></div>
+          <table class="table grid-table">
+            <colgroup><col class="c-name"><col class="c-prev"><col class="c-val"><col><col class="c-act"></colgroup>
+            <thead><tr><th>Account</th><th class="num">Last month</th><th class="num value-col"><%= fmt.month(month) %></th><th>Note</th><th></th></tr></thead>
+            <tbody>
+            <% for (const r of g.rows) { %>
+              <tr data-account="<%= r.id %>" data-grp="<%= r.grp %>" data-counts="<%= r.counts_in_net_worth %>" data-carried="<%= r.carriedCents == null ? '' : r.carriedCents %>">
+                <td>
+                  <a class="row-link" href="pom://app/accounts/<%= r.id %>?back=/month-end?month=<%= month %>"><%= r.nickname %></a>
+                  <div class="meta"><%= r.type_label %><%= r.company_name ? ' · ' + r.company_name : '' %><% if (r.closesThisMonth) { %> · <span class="badge badge-closed">Closes this month</span><% } %><% if (!r.counts_in_net_worth) { %> · not counted<% } %></div>
+                </td>
+                <td class="num">
+                  <% if (r.prevCents == null) { %><span class="meta">—</span><% } else { %>
+                    <%= fmt.moneyExact(r.prevCents) %><% if (r.prevCarried) { %> <span class="badge" title="Carried forward">carried</span><% } %>
+                  <% } %>
+                </td>
+                <td class="num value-col">
+                  <div class="money-input<%= r.grp === 'liability' ? ' is-debt' : '' %>">
+                    <span>$</span>
+                    <input type="text" inputmode="decimal" name="value-<%= r.id %>" data-value
+                      value="<%= r.entry ? fmt.amountInput(r.entry.value_cents) : '' %>"
+                      placeholder="<%= r.carriedCents != null ? fmt.amountInput(r.carriedCents) : '' %>" autocomplete="off" aria-label="<%= r.nickname %> value">
+                  </div>
+                  <span class="field-error" data-error-for="value-<%= r.id %>" hidden></span>
+                </td>
+                <td><input type="text" class="note-input" data-note value="<%= r.entry && r.entry.note ? r.entry.note : '' %>" maxlength="500" placeholder="Optional" autocomplete="off" aria-label="Note"></td>
+                <td>
+                  <% if (r.prevCents != null) { %>
+                    <button type="button" class="btn btn-ghost btn-sm" data-copy="<%= fmt.amountInput(r.prevCents) %>" title="Use last month's value">Same as last</button>
+                  <% } %>
+                </td>
+              </tr>
+            <% } %>
+            </tbody>
+          </table>
+        </section>
+      <% } %>
+      <p class="form-error" role="alert" hidden></p>
+      <div class="form-actions sticky-actions">
+        <span class="meta" data-dirty hidden>Unsaved changes</span>
+        <span class="spacer"></span>
+        <button type="button" class="btn btn-ghost" data-copy-all>Fill empty boxes with last month</button>
+        <button type="submit" class="btn btn-primary">Save <%= fmt.month(month) %></button>
+      </div>
+    </form>
+  <% } %>
+</div>
