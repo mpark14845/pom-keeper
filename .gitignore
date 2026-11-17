@@ -1,0 +1,12 @@
+node_modules/
+dist/
+out/
+*.log
+.env
+.env.*
+
+# Never commit real data or backups
+*.db
+*.db-*
+*.pombak
+pomkeeper.keys.json
