@@ -81,4 +81,18 @@
       <% } %>
     </section>
   <% } %>
+
+  <% if (linked) { for (const l of linked) { %>
+    <section class="card card-flush">
+      <div class="card-head">
+        <h2><%= l.title %></h2>
+        <% if (l.addHref) { %><a class="btn btn-secondary btn-sm" href="pom://app<%= l.addHref %>&back=/<%= entity %>/<%= record.id %>"><%- include('../partials/icon', { name: 'plus' }) %> Add account</a><% } %>
+      </div>
+      <% if (!l.rows.length) { %>
+        <p class="meta card-pad">None yet.</p>
+      <% } else { %>
+        <%- include('../partials/account-table', { rows: l.rows, fmt, mask: (n) => (n ? '••••' + String(n).slice(-4) : ''), hideCompany: entity === 'companies', back: '/' + entity + '/' + record.id }) %>
+      <% } %>
+    </section>
+  <% } } %>
 </div>

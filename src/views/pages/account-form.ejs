@@ -1,0 +1,195 @@
+<%
+  const a = account;
+  const v = (k) => (a[k] != null ? a[k] : '');
+  const grp = a.type_code ? opts.typeGrp[a.type_code] : null;
+  const isLife = a.type_code === 'term_life' || a.type_code === 'whole_life';
+%>
+<header class="page-header">
+  <div>
+    <a class="back" href="pom://app<%= returnTo %>"><%- include('../partials/icon', { name: 'back' }) %> Accounts</a>
+    <h1><%= isNew ? 'New account' : a.nickname %></h1>
+    <% if (!isNew) { %><p class="meta"><%= a.category_label %> · <%= a.type_label %><%= a.company_name ? ' · ' + a.company_name : '' %></p><% } %>
+  </div>
+  <% if (!isNew && a.counts_in_net_worth) { %>
+    <div class="header-value">
+      <p class="overline">Latest value</p>
+      <p class="stat-value<%= a.grp === 'liability' ? ' neg' : '' %>"><%= a.latest_cents == null ? '—' : fmt.money(a.grp === 'liability' ? -a.latest_cents : a.latest_cents) %></p>
+      <% if (a.latest_month) { %><p class="meta"><%= fmt.month(a.latest_month) %></p><% } %>
+    </div>
+  <% } %>
+</header>
+<div class="page-body narrow">
+  <form id="account-form" class="stack" data-id="<%= isNew ? '' : a.id %>" data-return="<%= returnTo %>"
+        data-type-grp='<%= JSON.stringify(opts.typeGrp) %>' novalidate>
+
+    <section class="card">
+      <h2>The basics</h2>
+      <div class="form-grid">
+        <label class="field span-2">
+          <span class="field-label">Account name <span class="req">*</span></span>
+          <input type="text" name="nickname" value="<%= v('nickname') %>" maxlength="120" placeholder="e.g. Joint checking, Mike's 401(k), Honda CR-V" <%= isNew ? 'autofocus' : '' %> autocomplete="off" spellcheck="false">
+          <span class="field-error" data-error-for="nickname" hidden></span>
+        </label>
+        <label class="field">
+          <span class="field-label">Type <span class="req">*</span></span>
+          <select name="type_code">
+            <option value="">Choose a type…</option>
+            <% for (const g of opts.typeGroups) { %>
+              <optgroup label="<%= g.label %>">
+                <% for (const t of g.types) { %><option value="<%= t.code %>" <%= a.type_code === t.code ? 'selected' : '' %>><%= t.label %></option><% } %>
+              </optgroup>
+            <% } %>
+          </select>
+          <span class="field-error" data-error-for="type_code" hidden></span>
+        </label>
+        <label class="field">
+          <span class="field-label">Company</span>
+          <select name="company_id">
+            <option value="">None (e.g. cash, a car you own outright)</option>
+            <% for (const c of opts.companies) { %><option value="<%= c.id %>" <%= Number(a.company_id) === c.id ? 'selected' : '' %>><%= c.name %></option><% } %>
+          </select>
+          <span class="field-error" data-error-for="company_id" hidden></span>
+        </label>
+        <label class="field">
+          <span class="field-label">Account number</span>
+          <input type="text" name="account_number" class="mono" value="<%= v('account_number') %>" maxlength="60" autocomplete="off" spellcheck="false">
+          <span class="field-error" data-error-for="account_number" hidden></span>
+        </label>
+        <label class="field">
+          <span class="field-label">Routing number</span>
+          <input type="text" name="routing_number" class="mono" value="<%= v('routing_number') %>" maxlength="20" autocomplete="off" spellcheck="false">
+        </label>
+        <label class="field" data-show-for="liability">
+          <span class="field-label">Interest rate (%)</span>
+          <input type="text" name="interest_rate" value="<%= v('interest_rate') %>" inputmode="decimal" autocomplete="off">
+          <span class="field-error" data-error-for="interest_rate" hidden></span>
+        </label>
+        <label class="field" data-show-for="life"<%= isLife ? '' : ' hidden' %>>
+          <span class="field-label">Death benefit ($)</span>
+          <input type="text" name="face_amount" value="<%= fmt.amountInput(a.face_amount_cents) %>" inputmode="decimal" autocomplete="off">
+          <span class="field-hint">Shown on the printout. Term life isn't counted in net worth.</span>
+          <span class="field-error" data-error-for="face_amount" hidden></span>
+        </label>
+        <label class="field span-2" data-show-for="liability"<%= grp === 'liability' ? '' : ' hidden' %>>
+          <span class="field-label">Secured by</span>
+          <select name="secured_by_account_id">
+            <option value="">Nothing (unsecured)</option>
+            <% for (const s of opts.securableAssets) { %><option value="<%= s.id %>" <%= Number(a.secured_by_account_id) === s.id ? 'selected' : '' %>><%= s.nickname %> (<%= s.type_label %>)</option><% } %>
+          </select>
+          <span class="field-hint">Link a mortgage to the house or a car loan to the car. Add the house or car as an account first.</span>
+          <span class="field-error" data-error-for="secured_by_account_id" hidden></span>
+        </label>
+      </div>
+    </section>
+
+    <section class="card">
+      <h2>Status</h2>
+      <div class="form-grid">
+        <label class="field">
+          <span class="field-label">Status</span>
+          <select name="status">
+            <option value="open" <%= a.status !== 'closed' ? 'selected' : '' %>>Open</option>
+            <option value="closed" <%= a.status === 'closed' ? 'selected' : '' %>>Closed</option>
+          </select>
+        </label>
+        <label class="field">
+          <span class="field-label">Opened</span>
+          <input type="date" name="opened_on" value="<%= v('opened_on') %>">
+          <span class="field-error" data-error-for="opened_on" hidden></span>
+        </label>
+        <label class="field" data-show-for="closed"<%= a.status === 'closed' ? '' : ' hidden' %>>
+          <span class="field-label">Closed on <span class="req">*</span></span>
+          <input type="date" name="closed_on" value="<%= v('closed_on') %>">
+          <span class="field-hint">Counts as $0 after this month. Its history is kept.</span>
+          <span class="field-error" data-error-for="closed_on" hidden></span>
+        </label>
+      </div>
+    </section>
+
+    <section class="card">
+      <h2>People</h2>
+      <% if (!opts.contacts.length && !opts.family.length) { %>
+        <p class="meta">Add <a href="pom://app/family">family members</a> and <a href="pom://app/contacts">contacts</a> to link them here.</p>
+      <% } %>
+
+      <div class="links" data-links="contacts">
+        <div class="links-head"><h3>Contacts</h3><button type="button" class="btn btn-ghost btn-sm" data-add-link="contacts" <%= opts.contacts.length ? '' : 'disabled' %>><%- include('../partials/icon', { name: 'plus' }) %> Add contact</button></div>
+        <div data-link-rows>
+          <% for (const c of (a.contacts || [])) { %>
+            <%- include('../partials/link-row', { kind: 'contacts', opts, sel: c.contact_id, role: c.role, share: null }) %>
+          <% } %>
+        </div>
+        <template><%- include('../partials/link-row', { kind: 'contacts', opts, sel: null, role: null, share: null }) %></template>
+      </div>
+
+      <div class="links" data-links="owners">
+        <div class="links-head"><h3>Owners</h3><button type="button" class="btn btn-ghost btn-sm" data-add-link="owners" <%= opts.family.length ? '' : 'disabled' %>><%- include('../partials/icon', { name: 'plus' }) %> Add owner</button></div>
+        <div data-link-rows>
+          <% for (const o of (a.owners || [])) { %>
+            <%- include('../partials/link-row', { kind: 'owners', opts, sel: o.family_member_id, role: o.role, share: o.share_pct }) %>
+          <% } %>
+        </div>
+        <template><%- include('../partials/link-row', { kind: 'owners', opts, sel: null, role: null, share: null }) %></template>
+      </div>
+
+      <div class="links" data-links="beneficiaries" data-show-for="not-liability"<%= grp === 'liability' ? ' hidden' : '' %>>
+        <div class="links-head"><h3>Beneficiaries</h3><button type="button" class="btn btn-ghost btn-sm" data-add-link="beneficiaries" <%= opts.family.length ? '' : 'disabled' %>><%- include('../partials/icon', { name: 'plus' }) %> Add beneficiary</button></div>
+        <div data-link-rows>
+          <% for (const b of (a.beneficiaries || [])) { %>
+            <%- include('../partials/link-row', { kind: 'beneficiaries', opts, sel: b.family_member_id, role: b.level, share: b.share_pct }) %>
+          <% } %>
+        </div>
+        <template><%- include('../partials/link-row', { kind: 'beneficiaries', opts, sel: null, role: null, share: null }) %></template>
+      </div>
+      <span class="field-error" data-error-for="contacts" hidden></span>
+      <span class="field-error" data-error-for="family_members" hidden></span>
+    </section>
+
+    <section class="card">
+      <h2>Notes</h2>
+      <label class="field">
+        <span class="field-label sr-only">Notes</span>
+        <textarea name="notes" rows="4" placeholder="Anything your family should know: how to claim it, who to call first, where the paperwork is."><%= v('notes') %></textarea>
+      </label>
+    </section>
+
+    <% if (!isNew && (a.securedBy || (a.securing && a.securing.length))) { %>
+    <section class="card">
+      <h2>Linked</h2>
+      <% if (a.securedBy) { %><p>Secured by <a href="pom://app/accounts/<%= a.securedBy.id %>"><%= a.securedBy.nickname %></a></p><% } %>
+      <% for (const s of a.securing) { %><p>Secures <a href="pom://app/accounts/<%= s.id %>"><%= s.nickname %></a></p><% } %>
+    </section>
+    <% } %>
+
+    <% if (!isNew) { %>
+    <section class="card">
+      <h2>Month-end values</h2>
+      <% if (!a.values.length) { %>
+        <p class="meta">No values yet. You'll enter these on the Month-End page in the next update.</p>
+      <% } else { %>
+        <table class="table compact">
+          <thead><tr><th>Month</th><th class="num">Value</th><th>Note</th></tr></thead>
+          <tbody><% for (const mv of a.values) { %><tr><td><%= fmt.month(mv.month) %></td><td class="num"><%= fmt.money(mv.value_cents) %></td><td class="meta"><%= mv.note || '' %></td></tr><% } %></tbody>
+        </table>
+      <% } %>
+    </section>
+    <% } %>
+
+    <p class="form-error" role="alert" hidden></p>
+    <div class="form-actions sticky-actions">
+      <% if (!isNew) { %>
+        <button type="button" class="btn btn-ghost btn-danger" data-delete><%- include('../partials/icon', { name: 'trash' }) %> Delete</button>
+      <% } %>
+      <span class="spacer"></span>
+      <a class="btn btn-ghost" href="pom://app<%= returnTo %>">Cancel</a>
+      <button type="submit" class="btn btn-primary"><%= isNew ? 'Add account' : 'Save changes' %></button>
+    </div>
+    <div class="confirm" data-confirm hidden>
+      <p data-confirm-text></p>
+      <div class="row">
+        <button type="button" class="btn btn-danger-solid" data-confirm-yes>Yes, delete</button>
+        <button type="button" class="btn btn-ghost" data-confirm-no>Keep it</button>
+      </div>
+    </div>
+  </form>
+</div>

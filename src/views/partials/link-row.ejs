@@ -1,0 +1,21 @@
+<%
+  const cfg = {
+    contacts: { idName: 'contact_id', kindName: 'role', kinds: opts.contactRoles, people: opts.contacts, share: false, placeholder: 'Choose a contact…' },
+    owners: { idName: 'family_member_id', kindName: 'role', kinds: opts.ownerRoles, people: opts.family, share: true, placeholder: 'Choose a family member…' },
+    beneficiaries: { idName: 'family_member_id', kindName: 'level', kinds: opts.beneficiaryLevels, people: opts.family, share: true, placeholder: 'Choose a family member…' },
+  }[kind];
+  const label = (p) => (kind === 'contacts' ? `${p.name} (${p.company_name})` : p.kind && p.kind !== 'person' ? `${p.name} (${p.kind})` : p.name);
+%>
+<div class="link-row">
+  <select data-k="<%= cfg.idName %>" aria-label="Person">
+    <option value=""><%= cfg.placeholder %></option>
+    <% for (const p of cfg.people) { %><option value="<%= p.id %>" <%= sel === p.id ? 'selected' : '' %>><%= label(p) %></option><% } %>
+  </select>
+  <select data-k="<%= cfg.kindName %>" aria-label="Role" class="select-sm">
+    <% for (const k of cfg.kinds) { %><option value="<%= k %>" <%= role === k ? 'selected' : '' %>><%= k.charAt(0).toUpperCase() + k.slice(1) %></option><% } %>
+  </select>
+  <% if (cfg.share) { %>
+    <input type="text" data-k="share_pct" value="<%= share != null ? share : '' %>" placeholder="Share %" aria-label="Share percent" class="input-xs" inputmode="decimal">
+  <% } %>
+  <button type="button" class="btn btn-ghost btn-icon" data-remove-link title="Remove"><%- include('icon', { name: 'trash' }) %></button>
+</div>

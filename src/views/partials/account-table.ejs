@@ -1,0 +1,33 @@
+<%
+  // rows, fmt, mask; optional: hideCompany, back
+  const q = typeof back !== 'undefined' && back ? `?back=${back}` : '';
+%>
+<table class="table" data-filterable>
+  <thead><tr>
+    <th>Account</th><th>Type</th><% if (typeof hideCompany === 'undefined' || !hideCompany) { %><th>Company</th><% } %><th>Number</th><th>Owner</th><th class="num">Latest value</th>
+  </tr></thead>
+  <tbody>
+  <% for (const r of rows) { %>
+    <tr data-href="pom://app/accounts/<%= r.id %><%= q %>" class="<%= r.status === 'closed' ? 'is-closed' : '' %>">
+      <td>
+        <a class="row-link" href="pom://app/accounts/<%= r.id %><%= q %>"><%= r.nickname %></a>
+        <% if (r.status === 'closed') { %><span class="badge badge-closed">Closed</span><% } %>
+      </td>
+      <td><%= r.type_label %></td>
+      <% if (typeof hideCompany === 'undefined' || !hideCompany) { %><td><%= r.company_name || '' %></td><% } %>
+      <td class="mono meta"><%= mask(r.account_number) %></td>
+      <td><%= r.owner_names || '' %></td>
+      <td class="num">
+        <% if (!r.counts_in_net_worth) { %>
+          <span class="meta" title="Not counted in net worth"><%= r.face_amount_cents != null ? fmt.money(r.face_amount_cents) + ' benefit' : 'Info only' %></span>
+        <% } else if (r.latest_cents == null) { %>
+          <span class="meta">—</span>
+        <% } else { %>
+          <span class="<%= r.grp === 'liability' ? 'neg' : '' %>"><%= fmt.money(r.grp === 'liability' ? -r.latest_cents : r.latest_cents) %></span>
+          <span class="meta month"><%= fmt.month(r.latest_month) %></span>
+        <% } %>
+      </td>
+    </tr>
+  <% } %>
+  </tbody>
+</table>
