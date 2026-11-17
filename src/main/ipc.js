@@ -10,6 +10,7 @@ const { ipcMain, dialog, shell, BrowserWindow } = require('electron');
 const { isAppUrl } = require('./security');
 const { printRoute } = require('./print');
 const repo = require('./repos/entities');
+const acc = require('./repos/accounts');
 
 function handle(channel, fn) {
   ipcMain.handle(`pom:${channel}`, async (event, ...args) => {
@@ -81,6 +82,14 @@ function registerIpc({ session, dataDir }) {
   handle('deleteImpact', async (_e, entity, id) => repo.deleteImpact(session.openDb, entity, id));
   handle('remove', async (_e, entity, id) => {
     repo.remove(session.openDb, entity, id);
+  });
+  handle('saveAccount', async (_e, data) => {
+    session.touch();
+    return { id: acc.saveAccount(session.openDb, data) };
+  });
+  handle('accountImpact', async (_e, id) => acc.accountImpact(session.openDb, id));
+  handle('removeAccount', async (_e, id) => {
+    acc.removeAccount(session.openDb, id);
   });
   handle('openDataFolder', async () => {
     await shell.openPath(dataDir);

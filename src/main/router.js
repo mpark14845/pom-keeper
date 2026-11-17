@@ -10,6 +10,8 @@ const path = require('node:path');
 const ejs = require('ejs');
 const { APP_ORIGIN, CSP } = require('./security');
 const repo = require('./repos/entities');
+const acc = require('./repos/accounts');
+const fmt = require('./format');
 
 const ROOT = path.join(__dirname, '..');
 const VIEWS = path.join(ROOT, 'views');
@@ -26,7 +28,7 @@ const MIME = {
 
 const NAV = [
   { id: 'dashboard', label: 'Dashboard', icon: 'grid', href: '/dashboard' },
-  { id: 'accounts', label: 'Accounts', icon: 'layers', soon: true },
+  { id: 'accounts', label: 'Accounts', icon: 'layers', href: '/accounts' },
   { id: 'month-end', label: 'Month-End', icon: 'calendar', soon: true },
   { id: 'companies', label: 'Companies', icon: 'building', href: '/companies' },
   { id: 'contacts', label: 'Contacts', icon: 'user', href: '/contacts' },
@@ -69,7 +71,7 @@ function serveStatic(pathname) {
 }
 
 async function render(page, data) {
-  const locals = { nav: NAV, active: null, title: 'POM Keeper', layout: 'app', scripts: [], ...data };
+  const locals = { nav: NAV, active: null, title: 'POM Keeper', layout: 'app', scripts: [], fmt, ...data };
   const body = await ejs.renderFile(path.join(VIEWS, 'pages', `${page}.ejs`), locals);
   const html = await ejs.renderFile(path.join(VIEWS, `layout-${locals.layout}.ejs`), { ...locals, body });
   return new Response(html, { headers: headers('text/html; charset=utf-8') });
@@ -134,7 +136,7 @@ function createRouter({ session, dataDir }) {
           date: new Date().toLocaleDateString('en-US', { year: 'numeric', month: 'long', day: 'numeric' }),
         });
       default:
-        return recordRoutes(session.db, p, url) || notFound();
+        return accountRoutes(session.db, p, url) || recordRoutes(session.db, p, url) || notFound();
     }
   };
 }
@@ -191,6 +193,65 @@ function recordRoutes(db, p, url) {
     returnTo,
     companies: entity === 'contacts' ? repo.companyOptions(db) : [],
     contacts: entity === 'companies' && record ? repo.listContacts(db, { companyId: record.id }) : [],
+    linked: record ? linkedAccounts(db, entity, record.id) : null,
+  });
+}
+
+function linkedAccounts(db, entity, id) {
+  if (entity === 'companies') return [{ title: 'Accounts', rows: acc.accountsForCompany(db, id), addHref: `/accounts/new?company=${id}` }];
+  if (entity === 'contacts') return [{ title: 'Accounts this contact handles', rows: acc.accountsForContact(db, id) }];
+  const f = acc.accountsForFamily(db, id);
+  return [
+    { title: 'Owns', rows: f.owns },
+    { title: 'Beneficiary of', rows: f.beneficiaryOf },
+  ];
+}
+
+const VIEWS_LIST = [
+  { id: 'type', label: 'Account type' },
+  { id: 'account', label: 'Account' },
+  { id: 'company', label: 'Company' },
+  { id: 'contact', label: 'Contact' },
+];
+
+/** /accounts, /accounts/new, /accounts/:id */
+function accountRoutes(db, p, url) {
+  const m = p.match(/^\/accounts(?:\/(new|\d+))?$/);
+  if (!m) return null;
+  const which = m[1];
+  if (!which) {
+    const view = VIEWS_LIST.some((v) => v.id === url.searchParams.get('view')) ? url.searchParams.get('view') : 'type';
+    const includeClosed = url.searchParams.get('closed') === '1';
+    const { groups, rows } = acc.groupAccounts(db, view, { includeClosed });
+    return render('accounts-list', {
+      active: 'accounts',
+      title: 'Accounts',
+      scripts: ['list-filter'],
+      view,
+      views: VIEWS_LIST,
+      includeClosed,
+      groups,
+      totals: acc.summary(rows),
+      count: rows.length,
+      mask: acc.mask,
+    });
+  }
+  const account = which === 'new' ? null : acc.getAccount(db, which);
+  if (which !== 'new' && !account) return null;
+  const preset = { status: 'open' };
+  if (!account) {
+    if (url.searchParams.get('company')) preset.company_id = Number(url.searchParams.get('company'));
+    if (url.searchParams.get('type')) preset.type_code = url.searchParams.get('type');
+  }
+  const back = url.searchParams.get('back');
+  return render('account-form', {
+    active: 'accounts',
+    title: account ? account.nickname : 'New account',
+    scripts: ['account-form'],
+    account: account || preset,
+    isNew: !account,
+    returnTo: back && /^\/[a-z0-9/?=&-]*$/i.test(back) ? back : '/accounts',
+    opts: acc.formOptions(db, account && account.id),
   });
 }
 
