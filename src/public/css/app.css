@@ -283,3 +283,29 @@ h3 { font-size: var(--pk-text-md); font-weight: 600; color: var(--pk-ink-800); m
 .select-sm { width: 160px; }
 .input-xs { width: 90px; }
 .sticky-actions { position: sticky; bottom: 0; background: var(--pk-paper); padding: var(--pk-space-3) 0; margin-top: var(--pk-space-2); z-index: 2; }
+
+/* ---------- Month-End (milestone 3c) ---------- */
+.month-nav { display: flex; align-items: center; gap: var(--pk-space-1); }
+.month-nav select { height: 36px; padding: 0 var(--pk-space-3); min-width: 130px; }
+.flip .icon { transform: scaleX(-1); }
+.is-disabled { opacity: 0.35; pointer-events: none; }
+.grid-table td { vertical-align: top; }
+.grid-table .value-col { width: 190px; }
+.money-input {
+  display: flex; align-items: center; gap: 4px;
+  height: 36px; padding: 0 var(--pk-space-2);
+  background: var(--pk-surface); border: 1px solid var(--pk-line); border-radius: var(--pk-radius-md);
+}
+.money-input:focus-within { border-color: var(--pk-brand-500); box-shadow: 0 0 0 3px var(--pk-brand-50); }
+.money-input span { color: var(--pk-ink-400); }
+.money-input input { border: 0; height: 100%; padding: 0; width: 100%; text-align: right; font-variant-numeric: tabular-nums; background: transparent; box-shadow: none; }
+.money-input input:focus { box-shadow: none; }
+.money-input input::placeholder { color: var(--pk-ink-300); }
+.money-input.is-debt span { color: var(--pk-danger); }
+.note-input { height: 36px; width: 100%; min-width: 120px; }
+.pos { color: var(--pk-ok-fg); }
+.grid-table { table-layout: fixed; }
+.grid-table .c-name { width: 30%; }
+.grid-table .c-prev { width: 170px; }
+.grid-table .c-val { width: 190px; }
+.grid-table .c-act { width: 130px; }

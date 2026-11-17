@@ -11,6 +11,7 @@ const { isAppUrl } = require('./security');
 const { printRoute } = require('./print');
 const repo = require('./repos/entities');
 const acc = require('./repos/accounts');
+const nw = require('./repos/networth');
 
 function handle(channel, fn) {
   ipcMain.handle(`pom:${channel}`, async (event, ...args) => {
@@ -90,6 +91,10 @@ function registerIpc({ session, dataDir }) {
   handle('accountImpact', async (_e, id) => acc.accountImpact(session.openDb, id));
   handle('removeAccount', async (_e, id) => {
     acc.removeAccount(session.openDb, id);
+  });
+  handle('saveMonth', async (_e, month, items) => {
+    session.touch();
+    return { saved: nw.saveMonth(session.openDb, month, items) };
   });
   handle('openDataFolder', async () => {
     await shell.openPath(dataDir);

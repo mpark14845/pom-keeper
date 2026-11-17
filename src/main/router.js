@@ -11,6 +11,7 @@ const ejs = require('ejs');
 const { APP_ORIGIN, CSP } = require('./security');
 const repo = require('./repos/entities');
 const acc = require('./repos/accounts');
+const nw = require('./repos/networth');
 const fmt = require('./format');
 
 const ROOT = path.join(__dirname, '..');
@@ -29,7 +30,7 @@ const MIME = {
 const NAV = [
   { id: 'dashboard', label: 'Dashboard', icon: 'grid', href: '/dashboard' },
   { id: 'accounts', label: 'Accounts', icon: 'layers', href: '/accounts' },
-  { id: 'month-end', label: 'Month-End', icon: 'calendar', soon: true },
+  { id: 'month-end', label: 'Month-End', icon: 'calendar', href: '/month-end' },
   { id: 'companies', label: 'Companies', icon: 'building', href: '/companies' },
   { id: 'contacts', label: 'Contacts', icon: 'user', href: '/contacts' },
   { id: 'family', label: 'Family', icon: 'users', href: '/family' },
@@ -118,8 +119,43 @@ function createRouter({ session, dataDir }) {
         });
       case '/setup/backup':
         return render('setup-backup', { layout: 'auth', title: 'Backups', scripts: ['setup-backup'], settings });
-      case '/dashboard':
-        return render('dashboard', { active: 'dashboard', title: 'Dashboard', settings });
+      case '/dashboard': {
+        const month = nw.lastCompletedMonth();
+        const [prev, cur] = nw.series(session.db, nw.addMonths(month, -1), month);
+        const counts = session.db
+          .prepare("SELECT (SELECT count(*) FROM accounts) a, (SELECT count(*) FROM monthly_values) v")
+          .get();
+        return render('dashboard', {
+          active: 'dashboard',
+          title: 'Dashboard',
+          settings,
+          month,
+          cur,
+          prev,
+          hasAccounts: counts.a > 0,
+          hasValues: counts.v > 0,
+          missing: nw.missingFor(session.db, month),
+        });
+      }
+      case '/month-end': {
+        const last = nw.lastCompletedMonth();
+        const asked = url.searchParams.get('month');
+        const month = nw.isMonth(asked) && asked <= nw.currentMonth() ? asked : last;
+        const grid = nw.monthGrid(session.db, month);
+        const choices = nw.monthsBetween(nw.addMonths(nw.currentMonth(), -35), nw.currentMonth()).reverse();
+        return render('month-end', {
+          active: 'month-end',
+          title: 'Month-End',
+          scripts: ['month-end'],
+          grid,
+          month,
+          choices,
+          canNext: month < nw.currentMonth(),
+          next: nw.addMonths(month, 1),
+          prevMonth: nw.addMonths(month, -1),
+          saved: url.searchParams.get('saved'),
+        });
+      }
       case '/settings':
         return render('settings', {
           active: 'settings',

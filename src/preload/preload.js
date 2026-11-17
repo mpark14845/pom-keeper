@@ -24,4 +24,5 @@ contextBridge.exposeInMainWorld('pom', {
   saveAccount: call('saveAccount'),
   accountImpact: call('accountImpact'),
   removeAccount: call('removeAccount'),
+  saveMonth: call('saveMonth'),
 });

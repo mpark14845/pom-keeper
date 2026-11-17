@@ -6,7 +6,7 @@
   <div class="grid-3">
     <div class="card stat"><p class="overline">Assets</p><p class="stat-value"><%= totals.hasValues ? fmt.money(totals.assets) : '—' %></p></div>
     <div class="card stat"><p class="overline">Liabilities</p><p class="stat-value<%= totals.liabilities ? ' neg' : '' %>"><%= totals.hasValues ? fmt.money(-totals.liabilities) : '—' %></p></div>
-    <div class="card stat"><p class="overline">Net worth</p><p class="stat-value"><%= totals.hasValues ? fmt.money(totals.net) : '—' %></p><p class="meta"><%= totals.hasValues ? "From each open account's latest value." : 'Values arrive with the Month-End page in the next update.' %></p></div>
+    <div class="card stat"><p class="overline">Net worth</p><p class="stat-value"><%= totals.hasValues ? fmt.money(totals.net) : '—' %></p><p class="meta"><%= totals.hasValues ? "From each open account's latest value." : 'Enter balances on the Month-End page.' %></p></div>
   </div>
 
   <div class="toolbar">
