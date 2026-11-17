@@ -9,6 +9,7 @@ const fs = require('node:fs');
 const path = require('node:path');
 const ejs = require('ejs');
 const { APP_ORIGIN, CSP } = require('./security');
+const repo = require('./repos/entities');
 
 const ROOT = path.join(__dirname, '..');
 const VIEWS = path.join(ROOT, 'views');
@@ -27,9 +28,9 @@ const NAV = [
   { id: 'dashboard', label: 'Dashboard', icon: 'grid', href: '/dashboard' },
   { id: 'accounts', label: 'Accounts', icon: 'layers', soon: true },
   { id: 'month-end', label: 'Month-End', icon: 'calendar', soon: true },
-  { id: 'companies', label: 'Companies', icon: 'building', soon: true },
-  { id: 'contacts', label: 'Contacts', icon: 'user', soon: true },
-  { id: 'family', label: 'Family', icon: 'users', soon: true },
+  { id: 'companies', label: 'Companies', icon: 'building', href: '/companies' },
+  { id: 'contacts', label: 'Contacts', icon: 'user', href: '/contacts' },
+  { id: 'family', label: 'Family', icon: 'users', href: '/family' },
   { id: 'notes', label: 'Notes', icon: 'file', soon: true },
   { id: 'passwords', label: 'Passwords', icon: 'key', soon: true },
   { id: 'print', label: 'Print Center', icon: 'printer', soon: true },
@@ -133,9 +134,64 @@ function createRouter({ session, dataDir }) {
           date: new Date().toLocaleDateString('en-US', { year: 'numeric', month: 'long', day: 'numeric' }),
         });
       default:
-        return notFound();
+        return recordRoutes(session.db, p, url) || notFound();
     }
   };
+}
+
+const KIND_LABELS = {
+  family: { person: 'Person', trust: 'Trust', estate: 'Estate', other: 'Other' },
+  companies: {
+    bank: 'Bank', brokerage: 'Brokerage', insurer: 'Insurance', employer: 'Employer',
+    lender: 'Lender', government: 'Government', other: 'Other',
+  },
+};
+
+const SECTIONS = {
+  family: { title: 'Family', singular: 'family member', overline: 'People & trusts' },
+  companies: { title: 'Companies', singular: 'company', overline: 'Institutions' },
+  contacts: { title: 'Contacts', singular: 'contact', overline: 'People to call' },
+};
+
+/** /family, /companies, /contacts and their /new and /:id pages. */
+function recordRoutes(db, p, url) {
+  const m = p.match(/^\/(family|companies|contacts)(?:\/(new|\d+))?$/);
+  if (!m) return null;
+  const [, entity, which] = m;
+  const section = SECTIONS[entity];
+  const base = { active: entity, kinds: KIND_LABELS, entity, section };
+
+  if (!which) {
+    const rows =
+      entity === 'family' ? repo.listFamily(db) : entity === 'companies' ? repo.listCompanies(db) : repo.listContacts(db);
+    return render(`${entity}-list`, {
+      ...base,
+      title: section.title,
+      scripts: ['list-filter'],
+      rows,
+      hasCompanies: entity !== 'contacts' || repo.companyOptions(db).length > 0,
+    });
+  }
+
+  const record = which === 'new' ? null : repo.get(db, entity, which);
+  if (which !== 'new' && !record) return null;
+  const preset = {};
+  if (entity === 'contacts' && which === 'new' && url.searchParams.get('company')) {
+    preset.company_id = Number(url.searchParams.get('company'));
+  }
+  const back = url.searchParams.get('back');
+  const returnTo = back && /^\/[a-z0-9/?=&-]*$/i.test(back) ? back : `/${entity}`;
+  return render('record-form', {
+    ...base,
+    title: record ? record.name : `New ${section.singular}`,
+    scripts: ['record-form'],
+    def: repo.ENTITIES[entity],
+    record: record || preset,
+    isNew: !record,
+    returnTo,
+    companies: entity === 'contacts' ? repo.companyOptions(db) : [],
+    contacts: entity === 'companies' && record ? repo.listContacts(db, { companyId: record.id }) : [],
+  });
 }
 
 module.exports = { createRouter, NAV };

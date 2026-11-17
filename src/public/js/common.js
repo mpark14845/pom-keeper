@@ -9,7 +9,7 @@
     const okEl = form.querySelector('.form-ok');
     if (err) { err.textContent = error || ''; err.hidden = !error; }
     if (okEl) okEl.hidden = !ok;
-    form.querySelectorAll('button, input').forEach((el) => { el.disabled = !!busy; });
+    form.querySelectorAll('button').forEach((el) => { el.disabled = !!busy; });
   }
 
   /** Score 0-4: length plus variety. Encourages long passphrases. */
@@ -72,6 +72,11 @@
     document.querySelectorAll('[data-action="lock"]').forEach((b) =>
       b.addEventListener('click', () => window.pom.lock())
     );
+    // Whole table rows are clickable.
+    document.addEventListener('click', (e) => {
+      const row = e.target.closest('tr[data-href]');
+      if (row && !e.target.closest('a, button, input')) window.location.href = row.dataset.href;
+    });
   });
   let lastPing = 0;
   const ping = () => {

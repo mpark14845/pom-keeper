@@ -1,0 +1,35 @@
+<header class="page-header">
+  <div><p class="overline"><%= section.overline %></p><h1>Companies</h1></div>
+  <a class="btn btn-primary" href="pom://app/companies/new"><%- include('../partials/icon', { name: 'plus' }) %> Add company</a>
+</header>
+<div class="page-body">
+  <p class="lede">Banks, brokerages, insurers, lenders and employers that hold your accounts.</p>
+  <% if (!rows.length) { %>
+    <div class="card empty">
+      <%- include('../partials/icon', { name: 'building' }) %>
+      <h2>No companies yet</h2>
+      <p>Start with the places your money is: your bank, your 401(k) provider, your mortgage lender.</p>
+      <a class="btn btn-primary" href="pom://app/companies/new">Add the first one</a>
+    </div>
+  <% } else { %>
+    <%- include('../partials/list-search', { placeholder: 'Search companies…' }) %>
+    <div class="card card-flush">
+      <table class="table" data-filterable>
+        <thead><tr><th>Name</th><th>Type</th><th>Phone</th><th>Website</th><th class="num">Contacts</th><th class="num">Accounts</th></tr></thead>
+        <tbody>
+        <% for (const r of rows) { %>
+          <tr data-href="pom://app/companies/<%= r.id %>">
+            <td><a class="row-link" href="pom://app/companies/<%= r.id %>"><%= r.name %></a></td>
+            <td><span class="badge"><%= kinds.companies[r.kind] %></span></td>
+            <td><%= r.phone || '' %></td>
+            <td class="meta truncate"><%= r.website || '' %></td>
+            <td class="num"><%= r.contact_count || '' %></td>
+            <td class="num"><%= r.account_count || '' %></td>
+          </tr>
+        <% } %>
+        </tbody>
+      </table>
+      <p class="no-match" hidden>No matches.</p>
+    </div>
+  <% } %>
+</div>
