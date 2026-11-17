@@ -25,4 +25,8 @@ contextBridge.exposeInMainWorld('pom', {
   accountImpact: call('accountImpact'),
   removeAccount: call('removeAccount'),
   saveMonth: call('saveMonth'),
+  saveCredential: call('saveCredential'),
+  removeCredential: call('removeCredential'),
+  revealSecret: call('revealSecret'),
+  copySecret: call('copySecret'),
 });

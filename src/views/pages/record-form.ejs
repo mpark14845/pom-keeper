@@ -1,12 +1,13 @@
 <%
   const v = (name) => (record && record[name] != null ? record[name] : '');
   const kindOptions = kinds[entity] || null;
-  const wide = ['notes', 'address'];
+  const wide = ['notes', 'address', 'body', 'include_in_print'];
+  const titleField = def.titleField || 'name';
 %>
 <header class="page-header">
   <div>
     <a class="back" href="pom://app<%= returnTo %>"><%- include('../partials/icon', { name: 'back' }) %> <%= section.title %></a>
-    <h1><%= isNew ? 'New ' + section.singular : record.name %></h1>
+    <h1><%= isNew ? 'New ' + section.singular : record[titleField] %></h1>
   </div>
 </header>
 <div class="page-body narrow">
@@ -28,11 +29,13 @@
                 <option value="<%= c.id %>" <%= Number(v(name)) === c.id ? 'selected' : '' %>><%= c.name %></option>
               <% } %>
             </select>
-          <% } else if (name === 'notes' || name === 'address') { %>
-            <textarea name="<%= name %>" rows="<%= name === 'notes' ? 4 : 2 %>"><%= v(name) %></textarea>
+          <% } else if (f.type === 'bool') { %>
+            <span class="check"><input type="checkbox" name="<%= name %>" <%= (record && record[name] != null ? record[name] : f.default) ? 'checked' : '' %>> <span>Yes</span></span>
+          <% } else if (name === 'notes' || name === 'address' || name === 'body') { %>
+            <textarea name="<%= name %>" rows="<%= name === 'body' ? 8 : name === 'notes' ? 4 : 2 %>"><%= v(name) %></textarea>
           <% } else { %>
             <input type="<%= f.type === 'date' ? 'date' : f.type === 'email' ? 'email' : 'text' %>" name="<%= name %>" value="<%= v(name) %>"
-              <%= name === 'name' && isNew ? 'autofocus' : '' %> <%= f.max ? 'maxlength=' + f.max : '' %> autocomplete="off" spellcheck="false">
+              <%= name === titleField && isNew ? 'autofocus' : '' %> <%= f.max ? 'maxlength=' + f.max : '' %> autocomplete="off" spellcheck="false">
           <% } %>
           <span class="field-error" data-error-for="<%= name %>" hidden></span>
         </label>
@@ -82,6 +85,7 @@
     </section>
   <% } %>
 
+  <% if (passwords) { %><%- include('../partials/linked-passwords', { passwords }) %><% } %>
   <% if (linked) { for (const l of linked) { %>
     <section class="card card-flush">
       <div class="card-head">
