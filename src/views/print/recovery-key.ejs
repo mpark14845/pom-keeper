@@ -1,0 +1,33 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<title>POM Keeper Recovery Key</title>
+<link rel="stylesheet" href="pom://app/static/css/fonts.css">
+<link rel="stylesheet" href="pom://app/static/css/print.css">
+</head>
+<body>
+  <article class="sheet">
+    <header>
+      <p class="overline">POM Keeper · Peace Of Mind Keeper</p>
+      <h1>Recovery Key</h1>
+      <p class="meta">Created <%= date %></p>
+    </header>
+    <div class="key"><%= recoveryKey %></div>
+    <section>
+      <h2>What this is</h2>
+      <p>This key opens POM Keeper if the master password is forgotten. Anyone holding it, together with the computer or a backup file, can read the financial information inside.</p>
+      <h2>How to use it</h2>
+      <ol>
+        <li>Open POM Keeper.</li>
+        <li>On the Unlock screen, click <strong>"Forgot your password? Use your recovery key."</strong></li>
+        <li>Type the key above. Dashes and capital letters don't matter.</li>
+        <li>Choose a new master password.</li>
+      </ol>
+      <h2>Keep it safe</h2>
+      <p>Store this page with your will or other important papers, such as in a fire safe or safe deposit box. Don't keep it in the same place as the computer's password.</p>
+    </section>
+    <footer>Confidential · If you make a new recovery key, destroy this page.</footer>
+  </article>
+</body>
+</html>

@@ -1,0 +1,66 @@
+/* POM Keeper design tokens. Style follows finmanager: warm paper neutrals,
+   dark ink, and a coral-red accent. */
+:root {
+  /* Brand */
+  --pk-brand-50:  #FDF1F1;
+  --pk-brand-200: #F8CDD0;
+  --pk-brand-500: #E8505B;
+  --pk-brand-600: #D63F4A;
+  --pk-brand-700: #B8323C;
+
+  /* Ink (text) */
+  --pk-ink-300: #C9C3B9;
+  --pk-ink-400: #A39B8F;
+  --pk-ink-500: #857D72;
+  --pk-ink-600: #5E574F;
+  --pk-ink-700: #423C36;
+  --pk-ink-800: #2A2622;
+  --pk-ink-900: #1C1A17;
+
+  /* Surfaces */
+  --pk-paper:     #FAF8F5;
+  --pk-surface:   #FFFFFF;
+  --pk-surface-2: #F2EEE8;
+  --pk-hover:     #F6F3EE;
+  --pk-line:      #E4DED5;
+  --pk-line-soft: #EEE9E2;
+
+  /* Status */
+  --pk-ok-bg:   #E7F3EA;
+  --pk-ok-fg:   #1E7A3C;
+  --pk-warn-bg: #FDF4E3;
+  --pk-warn-fg: #8A5A00;
+  --pk-danger:  #C4302B;
+
+  /* Spacing (4px grid) */
+  --pk-space-1: 4px;
+  --pk-space-2: 8px;
+  --pk-space-3: 12px;
+  --pk-space-4: 16px;
+  --pk-space-5: 20px;
+  --pk-space-6: 24px;
+  --pk-space-8: 32px;
+  --pk-space-10: 40px;
+  --pk-space-12: 48px;
+
+  /* Shape and depth */
+  --pk-radius-sm: 4px;
+  --pk-radius-md: 6px;
+  --pk-radius-lg: 10px;
+  --pk-shadow-xs: 0 1px 2px rgba(28, 26, 23, 0.05);
+  --pk-shadow-md: 0 4px 12px -2px rgba(28, 26, 23, 0.08);
+
+  /* Type */
+  --pk-font: 'Inter', system-ui, -apple-system, 'Segoe UI', sans-serif;
+  --pk-mono: 'Cascadia Mono', Consolas, 'SFMono-Regular', monospace;
+  --pk-text-xs: 12px;
+  --pk-text-sm: 13px;
+  --pk-text-md: 14px;
+  --pk-text-lg: 16px;
+  --pk-text-xl: 20px;
+  --pk-text-2xl: 24px;
+  --pk-text-3xl: 30px;
+
+  --pk-duration: 150ms;
+  --pk-sidebar-w: 248px;
+}

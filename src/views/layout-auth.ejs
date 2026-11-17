@@ -1,0 +1,13 @@
+<!doctype html>
+<html lang="en">
+<head>
+<%- include('partials/head', { title, scripts }) %>
+</head>
+<body class="auth">
+  <main class="auth-wrap">
+    <img class="auth-logo" src="pom://app/static/img/logo.svg" alt="POM Keeper">
+    <%- body %>
+    <p class="auth-foot"><%- include('partials/icon', { name: 'shield' }) %> Your data stays on this computer, encrypted. POM Keeper never connects to the internet.</p>
+  </main>
+</body>
+</html>

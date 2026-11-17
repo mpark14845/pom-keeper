@@ -1,0 +1,23 @@
+<section class="auth-card">
+  <h1>Use your recovery key</h1>
+  <p class="lede">Enter the 24-character key from your printed recovery sheet, then choose a new master password.</p>
+  <form id="recover-form" class="stack" novalidate>
+    <label class="field">
+      <span class="field-label">Recovery key</span>
+      <input type="text" name="key" class="mono" placeholder="XXXX-XXXX-XXXX-XXXX-XXXX-XXXX" autocomplete="off" spellcheck="false" required autofocus>
+    </label>
+    <label class="field">
+      <span class="field-label">New master password</span>
+      <input type="password" name="password" autocomplete="new-password" required minlength="10">
+      <span class="meter" aria-hidden="true"><span class="meter-bar" data-meter></span></span>
+      <span class="field-hint" data-meter-label>At least 10 characters.</span>
+    </label>
+    <label class="field">
+      <span class="field-label">Type it again</span>
+      <input type="password" name="confirm" autocomplete="new-password" required>
+    </label>
+    <p class="form-error" role="alert" hidden></p>
+    <button type="submit" class="btn btn-primary btn-block">Unlock and set new password</button>
+  </form>
+  <p class="fine"><a href="pom://app/unlock">Back to unlock</a></p>
+</section>
