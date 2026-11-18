@@ -12,6 +12,7 @@ const { APP_ORIGIN, CSP } = require('./security');
 const repo = require('./repos/entities');
 const acc = require('./repos/accounts');
 const nw = require('./repos/networth');
+const cred = require('./repos/credentials');
 const fmt = require('./format');
 
 const ROOT = path.join(__dirname, '..');
@@ -34,8 +35,8 @@ const NAV = [
   { id: 'companies', label: 'Companies', icon: 'building', href: '/companies' },
   { id: 'contacts', label: 'Contacts', icon: 'user', href: '/contacts' },
   { id: 'family', label: 'Family', icon: 'users', href: '/family' },
-  { id: 'notes', label: 'Notes', icon: 'file', soon: true },
-  { id: 'passwords', label: 'Passwords', icon: 'key', soon: true },
+  { id: 'notes', label: 'Notes', icon: 'file', href: '/notes' },
+  { id: 'passwords', label: 'Passwords', icon: 'key', href: '/passwords' },
   { id: 'print', label: 'Print Center', icon: 'printer', soon: true },
   { id: 'settings', label: 'Settings', icon: 'settings', href: '/settings' },
 ];
@@ -172,12 +173,18 @@ function createRouter({ session, dataDir }) {
           date: new Date().toLocaleDateString('en-US', { year: 'numeric', month: 'long', day: 'numeric' }),
         });
       default:
-        return accountRoutes(session.db, p, url) || recordRoutes(session.db, p, url) || notFound();
+        return (
+          accountRoutes(session.db, p, url) ||
+          passwordRoutes(session.db, p, url) ||
+          recordRoutes(session.db, p, url) ||
+          notFound()
+        );
     }
   };
 }
 
 const KIND_LABELS = {
+  notes: { instructions: 'Instructions', legal: 'Legal documents', location: 'Where things are', other: 'Other' },
   family: { person: 'Person', trust: 'Trust', estate: 'Estate', other: 'Other' },
   companies: {
     bank: 'Bank', brokerage: 'Brokerage', insurer: 'Insurance', employer: 'Employer',
@@ -189,19 +196,24 @@ const SECTIONS = {
   family: { title: 'Family', singular: 'family member', overline: 'People & trusts' },
   companies: { title: 'Companies', singular: 'company', overline: 'Institutions' },
   contacts: { title: 'Contacts', singular: 'contact', overline: 'People to call' },
+  notes: { title: 'Notes', singular: 'note', overline: 'Important information' },
 };
 
 /** /family, /companies, /contacts and their /new and /:id pages. */
 function recordRoutes(db, p, url) {
-  const m = p.match(/^\/(family|companies|contacts)(?:\/(new|\d+))?$/);
+  const m = p.match(/^\/(family|companies|contacts|notes)(?:\/(new|\d+))?$/);
   if (!m) return null;
   const [, entity, which] = m;
   const section = SECTIONS[entity];
   const base = { active: entity, kinds: KIND_LABELS, entity, section };
 
   if (!which) {
-    const rows =
-      entity === 'family' ? repo.listFamily(db) : entity === 'companies' ? repo.listCompanies(db) : repo.listContacts(db);
+    const rows = {
+      family: repo.listFamily,
+      companies: repo.listCompanies,
+      contacts: repo.listContacts,
+      notes: repo.listNotes,
+    }[entity](db);
     return render(`${entity}-list`, {
       ...base,
       title: section.title,
@@ -221,7 +233,7 @@ function recordRoutes(db, p, url) {
   const returnTo = back && /^\/[a-z0-9/?=&-]*$/i.test(back) ? back : `/${entity}`;
   return render('record-form', {
     ...base,
-    title: record ? record.name : `New ${section.singular}`,
+    title: record ? record[repo.ENTITIES[entity].titleField || 'name'] : `New ${section.singular}`,
     scripts: ['record-form'],
     def: repo.ENTITIES[entity],
     record: record || preset,
@@ -229,7 +241,51 @@ function recordRoutes(db, p, url) {
     returnTo,
     companies: entity === 'contacts' ? repo.companyOptions(db) : [],
     contacts: entity === 'companies' && record ? repo.listContacts(db, { companyId: record.id }) : [],
-    linked: record ? linkedAccounts(db, entity, record.id) : null,
+    linked: record && entity !== 'notes' ? linkedAccounts(db, entity, record.id) : null,
+    passwords: record && entity !== 'notes' ? linkedPasswords(db, entity, record.id) : null,
+  });
+}
+
+const LINK_TYPE = { accounts: 'account', companies: 'company', contacts: 'contact', family: 'family_member' };
+
+function linkedPasswords(db, entity, id) {
+  return { link: `${LINK_TYPE[entity]}:${id}`, rows: cred.list(db, { linkedType: LINK_TYPE[entity], linkedId: id }), back: `/${entity}/${id}` };
+}
+
+function safeBack(back, fallback) {
+  return back && /^\/[a-z0-9/?=&:-]*$/i.test(back) ? back : fallback;
+}
+
+/** /passwords, /passwords/new, /passwords/:id */
+function passwordRoutes(db, p, url) {
+  const m = p.match(/^\/passwords(?:\/(new|\d+))?$/);
+  if (!m) return null;
+  const which = m[1];
+  if (!which) {
+    return render('passwords-list', {
+      active: 'passwords',
+      title: 'Passwords',
+      scripts: ['list-filter', 'passwords'],
+      rows: cred.list(db),
+    });
+  }
+  const record = which === 'new' ? null : cred.get(db, which);
+  if (which !== 'new' && !record) return null;
+  const preset = { include_in_print: 1 };
+  const presetLink = url.searchParams.get('link');
+  if (!record && presetLink && /^[a-z_]+:\d+$/.test(presetLink)) {
+    const [t, i] = presetLink.split(':');
+    preset.linked_type = t;
+    preset.linked_id = Number(i);
+  }
+  return render('password-form', {
+    active: 'passwords',
+    title: record ? record.title : 'New password',
+    scripts: ['password-form'],
+    record: record || preset,
+    isNew: !record,
+    returnTo: safeBack(url.searchParams.get('back'), '/passwords'),
+    linkOptions: cred.linkOptions(db),
   });
 }
 
@@ -288,6 +344,7 @@ function accountRoutes(db, p, url) {
     isNew: !account,
     returnTo: back && /^\/[a-z0-9/?=&-]*$/i.test(back) ? back : '/accounts',
     opts: acc.formOptions(db, account && account.id),
+    passwords: account ? linkedPasswords(db, 'accounts', account.id) : null,
   });
 }
 

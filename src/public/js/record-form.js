@@ -1,5 +1,5 @@
 'use strict';
-/* Add / edit / delete for Family, Companies and Contacts. */
+/* Add / edit / delete for Family, Companies, Contacts and Notes. */
 document.addEventListener('DOMContentLoaded', () => {
   const form = document.getElementById('record-form');
   if (!form) return;
@@ -13,6 +13,8 @@ document.addEventListener('DOMContentLoaded', () => {
     async (f) => {
       clearFieldErrors();
       const data = Object.fromEntries(new FormData(f).entries());
+      // Unchecked boxes are missing from FormData; send them explicitly.
+      f.querySelectorAll('input[type="checkbox"][name]').forEach((c) => { data[c.name] = c.checked ? '1' : '0'; });
       if (id) data.id = id;
       const res = await window.pom.save(entity, data);
       if (!res.ok && res.field) {
@@ -44,7 +46,7 @@ document.addEventListener('DOMContentLoaded', () => {
         : `they'll be unlinked from ${plural(impact.accounts, 'account')}`);
     }
     if (impact.linkedPasswords) parts.push(`${plural(impact.linkedPasswords, 'saved password')} will be kept but unlinked`);
-    const noun = entity === 'family' ? 'family member' : entity === 'companies' ? 'company' : 'contact';
+    const noun = { family: 'family member', companies: 'company', contacts: 'contact', notes: 'note' }[entity] || 'record';
     const detail = parts.length ? ' ' + parts.join(', and ').replace(/^./, (c) => c.toUpperCase()) + '.' : '';
     return { msg: `Delete this ${noun}?${detail} This can't be undone.` };
   }

@@ -175,6 +175,8 @@
     </section>
     <% } %>
 
+    <% if (passwords) { %><%- include('../partials/linked-passwords', { passwords }) %><% } %>
+
     <p class="form-error" role="alert" hidden></p>
     <div class="form-actions sticky-actions">
       <% if (!isNew) { %>

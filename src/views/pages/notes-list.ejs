@@ -1,0 +1,37 @@
+<header class="page-header">
+  <div><p class="overline"><%= section.overline %></p><h1>Notes</h1></div>
+  <a class="btn btn-primary" href="pom://app/notes/new"><%- include('../partials/icon', { name: 'plus' }) %> Add note</a>
+</header>
+<div class="page-body">
+  <p class="lede">The things your family needs to know that aren't accounts: where the will is, who holds power of attorney, the safe deposit box, cash in the house, and what to do first.</p>
+  <% if (!rows.length) { %>
+    <div class="card empty">
+      <%- include('../partials/icon', { name: 'file' }) %>
+      <h2>No notes yet</h2>
+      <p>Try starting with "Where the will is" or "First steps if something happens to me".</p>
+      <a class="btn btn-primary" href="pom://app/notes/new">Add the first one</a>
+    </div>
+  <% } else { %>
+    <%- include('../partials/list-search', { placeholder: 'Search notes…' }) %>
+    <% const cats = ['instructions', 'legal', 'location', 'other']; %>
+    <% for (const c of cats) { const list = rows.filter((r) => r.category === c); if (!list.length) continue; %>
+      <section class="card card-flush" data-group>
+        <div class="card-head"><h2><%= kinds.notes[c] %></h2></div>
+        <table class="table" data-filterable>
+          <tbody>
+          <% for (const r of list) { %>
+            <tr data-href="pom://app/notes/<%= r.id %>">
+              <td class="note-cell">
+                <a class="row-link" href="pom://app/notes/<%= r.id %>"><%= r.title %></a>
+                <% if (!r.include_in_print) { %><span class="badge">Not printed</span><% } %>
+                <% if (r.body) { %><p class="meta note-preview"><%= r.body.length > 220 ? r.body.slice(0, 220) + '…' : r.body %></p><% } %>
+              </td>
+            </tr>
+          <% } %>
+          </tbody>
+        </table>
+      </section>
+    <% } %>
+    <p class="no-match card" hidden>No notes match your search.</p>
+  <% } %>
+</div>

@@ -309,3 +309,24 @@ h3 { font-size: var(--pk-text-md); font-weight: 600; color: var(--pk-ink-800); m
 .grid-table .c-prev { width: 170px; }
 .grid-table .c-val { width: 190px; }
 .grid-table .c-act { width: 130px; }
+
+/* ---------- Notes and Passwords (milestone 3d) ---------- */
+.note-cell .badge { margin-left: var(--pk-space-2); }
+.note-preview { margin: var(--pk-space-1) 0 0; white-space: pre-line; max-width: 72ch; }
+.plain-list { list-style: none; margin: 0; padding: 0; }
+.plain-list li { display: flex; align-items: center; gap: var(--pk-space-2); padding: var(--pk-space-3) var(--pk-space-5); border-top: 1px solid var(--pk-line-soft); }
+.plain-list li .icon { color: var(--pk-ink-400); width: 16px; height: 16px; }
+.pw-input { display: flex; gap: var(--pk-space-2); align-items: center; }
+.pw-input input { flex: 1; min-width: 0; }
+.link-btn {
+  align-self: flex-start; background: none; border: 0; padding: 0; margin-top: var(--pk-space-1);
+  color: var(--pk-brand-600); font: inherit; font-size: var(--pk-text-sm); cursor: pointer;
+}
+.link-btn:hover { text-decoration: underline; }
+.secret { letter-spacing: 0.04em; word-break: break-all; }
+.pw-table .actions { width: 150px; text-align: right; white-space: nowrap; }
+.toast {
+  position: fixed; right: var(--pk-space-6); bottom: var(--pk-space-6); z-index: 20;
+  background: var(--pk-ink-900); color: #fff; padding: var(--pk-space-3) var(--pk-space-4);
+  border-radius: var(--pk-radius-md); box-shadow: var(--pk-shadow-md); margin: 0;
+}

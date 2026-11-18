@@ -21,6 +21,22 @@ const text = (max = 200) => ({ type: 'text', max });
 const longText = () => ({ type: 'text', max: 5000 });
 
 const ENTITIES = {
+  notes: {
+    table: 'notes',
+    titleField: 'title',
+    label: 'Note',
+    fields: {
+      title: { ...text(120), required: true, label: 'Title' },
+      category: {
+        type: 'enum',
+        values: ['legal', 'location', 'instructions', 'other'],
+        default: 'other',
+        label: 'Category',
+      },
+      body: { ...longText(), label: 'Details' },
+      include_in_print: { type: 'bool', default: 1, label: 'Include on the family printout' },
+    },
+  },
   family: {
     table: 'family_members',
     linkedType: 'family_member',
@@ -83,6 +99,10 @@ function validate(db, entity, input) {
     if (typeof v === 'string') v = v.trim();
     if (v === '' || v === undefined) v = null;
 
+    if (v == null && f.type === 'bool') {
+      out[name] = name in input ? 0 : f.default ?? 0;
+      continue;
+    }
     if (v == null) {
       if (f.required) throw new ValidationError(`${f.label} is required.`, name);
       out[name] = f.default ?? null;
@@ -104,6 +124,9 @@ function validate(db, entity, input) {
       case 'email':
         v = String(v);
         if (!EMAIL.test(v) || v.length > 200) throw new ValidationError(`${f.label} doesn't look like an email address.`, name);
+        break;
+      case 'bool':
+        v = v === true || v === 1 || v === '1' || v === 'on' || v === 'true' ? 1 : 0;
         break;
       case 'ref': {
         v = Number(v);
@@ -144,6 +167,7 @@ function save(db, entity, data) {
 /** What deleting this record would affect, for the confirm message. */
 function deleteImpact(db, entity, id) {
   id = Number(id);
+  if (!def(entity).linkedType) return {};
   const linkedPasswords = db
     .prepare('SELECT count(*) n FROM credentials WHERE linked_type = ? AND linked_id = ?')
     .get(def(entity).linkedType, id).n;
@@ -185,7 +209,7 @@ function remove(db, entity, id) {
       for (const cid of contactIds) unlinkPasswords(db, 'contact', cid);
       db.prepare('DELETE FROM contacts WHERE company_id = ?').run(id);
     }
-    unlinkPasswords(db, d.linkedType, id);
+    if (d.linkedType) unlinkPasswords(db, d.linkedType, id);
     db.prepare(`DELETE FROM ${d.table} WHERE id = ?`).run(id);
   })();
 }
@@ -235,6 +259,15 @@ function listContacts(db, { companyId } = {}) {
     .all({ companyId: companyId ? Number(companyId) : null });
 }
 
+function listNotes(db) {
+  return db
+    .prepare(
+      `SELECT * FROM notes ORDER BY CASE category WHEN 'instructions' THEN 0 WHEN 'legal' THEN 1
+         WHEN 'location' THEN 2 ELSE 3 END, sort, title COLLATE NOCASE`
+    )
+    .all();
+}
+
 function companyOptions(db) {
   return db.prepare('SELECT id, name FROM companies ORDER BY name COLLATE NOCASE').all();
 }
@@ -250,5 +283,6 @@ module.exports = {
   listFamily,
   listCompanies,
   listContacts,
+  listNotes,
   companyOptions,
 };

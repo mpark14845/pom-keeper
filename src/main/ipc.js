@@ -6,12 +6,24 @@
  * { ok: true, ... } or { ok: false, code, message }.
  */
 
-const { ipcMain, dialog, shell, BrowserWindow } = require('electron');
+const { ipcMain, dialog, shell, BrowserWindow, clipboard } = require('electron');
 const { isAppUrl } = require('./security');
 const { printRoute } = require('./print');
 const repo = require('./repos/entities');
 const acc = require('./repos/accounts');
 const nw = require('./repos/networth');
+const cred = require('./repos/credentials');
+
+const CLIPBOARD_CLEAR_MS = 30_000;
+let clipboardTimer = null;
+let copiedValue = null;
+
+function clearCopiedSecret() {
+  clearTimeout(clipboardTimer);
+  clipboardTimer = null;
+  if (copiedValue !== null && clipboard.readText() === copiedValue) clipboard.clear();
+  copiedValue = null;
+}
 
 function handle(channel, fn) {
   ipcMain.handle(`pom:${channel}`, async (event, ...args) => {
@@ -26,6 +38,8 @@ function handle(channel, fn) {
 }
 
 function registerIpc({ session, dataDir }) {
+  // Locking (or quitting) also clears a copied password.
+  session.on('locked', clearCopiedSecret);
   const win = (event) => BrowserWindow.fromWebContents(event.sender);
 
   handle('setup', async (_e, password) => {
@@ -95,6 +109,28 @@ function registerIpc({ session, dataDir }) {
   handle('saveMonth', async (_e, month, items) => {
     session.touch();
     return { saved: nw.saveMonth(session.openDb, month, items) };
+  });
+  handle('saveCredential', async (_e, data) => {
+    session.touch();
+    return { id: cred.save(session.openDb, data) };
+  });
+  handle('removeCredential', async (_e, id) => {
+    cred.remove(session.openDb, id);
+  });
+  handle('revealSecret', async (_e, id, field) => {
+    session.touch();
+    return { value: cred.secret(session.openDb, id, field) };
+  });
+  // Copies in the main process and clears the clipboard after 30 seconds,
+  // unless something else was copied since.
+  handle('copySecret', async (_e, id, field) => {
+    session.touch();
+    const value = cred.secret(session.openDb, id, field) || '';
+    clipboard.writeText(value);
+    clearTimeout(clipboardTimer);
+    copiedValue = value;
+    clipboardTimer = setTimeout(clearCopiedSecret, CLIPBOARD_CLEAR_MS);
+    return { seconds: CLIPBOARD_CLEAR_MS / 1000 };
   });
   handle('openDataFolder', async () => {
     await shell.openPath(dataDir);
